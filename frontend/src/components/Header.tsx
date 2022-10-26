@@ -1,6 +1,7 @@
 import { useGoogleLogin, googleLogout } from '@react-oauth/google';
 import { useThemeStore } from '../app/themeStore';
 import { useAuthStore } from '../app/authStore';
+import { serverURL } from '../utils/constants';
 import axios from 'axios';
 import { SunIcon, MoonIcon, TvIcon } from '@heroicons/react/24/solid';
 
@@ -12,7 +13,7 @@ const Header = () => {
 		flow: 'auth-code',
 		scope: 'https://www.googleapis.com/auth/youtube.readonly',
 		onSuccess: async ({ code }) => {
-			const tokens = await axios.post('http://localhost:3001/api/google-auth', { code });
+			const tokens = await axios.post(`${serverURL}/api/google-auth`, { code });
 			authStore.setAuth({
 				access_token: tokens.data.access_token,
 				id_token: tokens.data.id_token,

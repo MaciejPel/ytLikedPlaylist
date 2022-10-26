@@ -1,8 +1,9 @@
+import { useEffect } from 'react';
 import { useAuthStore } from './app/authStore';
 import { useInfiniteQuery } from 'react-query';
 import axios, { AxiosError } from 'axios';
+import { serverURL } from './utils/constants';
 import Header from './components/Header';
-import { useEffect } from 'react';
 
 type ThumbnailProperties = {
 	width: number;
@@ -71,7 +72,7 @@ const App = () => {
 				enabled: authStore.access_token ? true : false,
 				onError: async (e: AxiosError) => {
 					if (e.response?.status == 401) {
-						const newTokens = await axios.post('http://localhost:3001/api/google-auth/refresh', {
+						const newTokens = await axios.post(`${serverURL}/api/google-auth/refresh`, {
 							refreshToken: authStore.refresh_token,
 						});
 						authStore.setAuth({
