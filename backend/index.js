@@ -42,4 +42,4 @@ app.post('/api/google-auth/refresh', async (req, res) => {
 	res.json(credentials);
 });
 
-app.listen(3001, () => console.log(`server is running`));
+app.listen(process.env.PORT || 3000, () => console.log(`server is running`));
