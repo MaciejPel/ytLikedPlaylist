@@ -5,6 +5,7 @@ const cors = require('cors');
 const { OAuth2Client, UserRefreshClient } = require('google-auth-library');
 
 const app = express();
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -42,4 +43,4 @@ app.post('/api/google-auth/refresh', async (req, res) => {
 	res.json(credentials);
 });
 
-app.listen(process.env.PORT || 3000, () => console.log(`server is running`));
+app.listen(port, () => console.log(`server is running on port ${port}`));
