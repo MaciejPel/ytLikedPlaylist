@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useAuthStore } from './app/authStore';
 import { useInfiniteQuery } from 'react-query';
-import axios, { AxiosError } from 'axios';
 import { serverURL } from './utils/constants';
+import axios, { AxiosError } from 'axios';
 import Header from './components/Header';
+import Loader from './components/Loader';
+import VideoCard from './components/VideoCard';
 
 type ThumbnailProperties = {
 	width: number;
@@ -45,7 +47,7 @@ interface VideosListResponse {
 	etag: string;
 	items: PlaylistItem[];
 	kind: string;
-	nextPageToken: string;
+	nextPageToken?: string;
 	pageInfo: {
 		totalResults: number;
 		resultsPerPage: number;
@@ -55,36 +57,35 @@ interface VideosListResponse {
 const App = () => {
 	const authStore = useAuthStore();
 
-	const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, isSuccess, refetch } =
+	const { data, isLoading, isFetchingNextPage, fetchNextPage, isSuccess, refetch } =
 		useInfiniteQuery<VideosListResponse, AxiosError>(
 			'likedVideos',
 			async ({ pageParam = null }) => {
-				const res = await axios.get(
-					`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&myRating=like&playlistId=LL&maxResults=50&key=${
-						import.meta.env.VITE_CLIENT_ID
-					}${pageParam ? `&pageToken=${pageParam}` : ''}`,
-					{ headers: { Authorization: `Bearer ${authStore.access_token}` } }
-				);
-				return res.data;
+				const res = await axios
+					.get(
+						`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&myRating=like&playlistId=LL&maxResults=50&key=${
+							import.meta.env.VITE_CLIENT_ID
+						}${pageParam ? `&pageToken=${pageParam}` : ''}`,
+						{ headers: { Authorization: `Bearer ${authStore.access_token}` } }
+					)
+					.catch(async (e: Error | AxiosError) => {
+						if (axios.isAxiosError(e) && e.response?.data.error.status === 'UNAUTHENTICATED') {
+							const newTokens = await axios.post(`${serverURL}/api/google-auth/refresh`, {
+								refreshToken: authStore.refresh_token,
+							});
+							authStore.setAccess({
+								access_token: newTokens.data.access_token,
+							});
+							setTimeout(refetch, 0);
+						}
+					});
+				if (res) return res.data;
 			},
 			{
 				refetchOnWindowFocus: false,
 				enabled: authStore.access_token ? true : false,
-				onError: async (e: AxiosError) => {
-					if (e.response?.status == 401) {
-						const newTokens = await axios.post(`${serverURL}/api/google-auth/refresh`, {
-							refreshToken: authStore.refresh_token,
-						});
-						authStore.setAuth({
-							access_token: newTokens.data.access_token,
-							id_token: newTokens.data.id_token,
-							refresh_token: newTokens.data.refresh_token,
-						});
-						refetch();
-					}
-				},
-				getNextPageParam: (lastPage, pages) => {
-					return lastPage.nextPageToken;
+				getNextPageParam: (lastPage) => {
+					return lastPage ? lastPage.nextPageToken : null;
 				},
 			}
 		);
@@ -94,9 +95,7 @@ const App = () => {
 			const bottom =
 				Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
 
-			if (bottom && data?.pages[data.pages.length - 1].nextPageToken) {
-				fetchNextPage();
-			}
+			if (bottom && data?.pages[data.pages.length - 1].nextPageToken) fetchNextPage();
 		};
 
 		window.addEventListener('scroll', handleScroll, {
@@ -112,56 +111,41 @@ const App = () => {
 		<>
 			<Header />
 			<div className="flex justify-center min-h-[calc(100vh_-_4rem)] dark:bg-zinc-800 dark:text-white text-black">
-				{!authStore.access_token && (
+				{!authStore.access_token ? (
 					<div className="container flex justify-center items-center">Login to test</div>
-				)}
-				{authStore.access_token && (
+				) : (
 					<div className="container mx-auto py-4 px-2 md:px-0">
 						{isLoading && (
-							<div className="flex justify-center items-center h-full">Loading... Stand by</div>
+							<div className="flex justify-center items-center h-full">
+								<Loader />
+							</div>
 						)}
-						<div className="grid xl:grid-cols-6 md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-3">
+						<div className="grid xl:grid-cols-6 md:grid-cols-4 sm:grid-cols-2 grid-cols-1 md:gap-3 gap-2">
 							{isSuccess &&
 								data.pages.map((page) =>
-									page?.items?.map((item) => {
-										if (['Deleted video', 'Private video'].includes(item.snippet.title))
-											return null;
-										return (
-											<a
+									page?.items?.map((item) =>
+										['Deleted video', 'Private video'].includes(item?.snippet?.title) ? null : (
+											<VideoCard
 												key={item.id}
-												href={`https://youtu.be/${item?.snippet.resourceId.videoId}`}
-												target="_blank"
-												rel="noopener"
-												className="w-full border-x-[1px] border-b-[1px] dark:border-zinc-700 rounded-lg dark:hover:bg-zinc-900 transition-colors duration-100"
-											>
-												<img
-													className="w-full rounded-t-lg"
-													src={item?.snippet?.thumbnails?.medium?.url}
-													alt=""
-												/>
-												<div className="flex flex-col px-2 py-1">
-													<div className="font-medium text-sm hover:underline clamp">
-														{item?.snippet?.title}
-													</div>
-													<div className="font-extralight text-xs dark:text-zinc-400 hover:underline">
-														{item?.snippet?.videoOwnerChannelTitle}
-													</div>
-												</div>
-											</a>
-										);
-									})
+												id={item.snippet.title}
+												videoId={item.snippet.resourceId.videoId}
+												title={item.snippet.title}
+												thumbnailURL={item.snippet.thumbnails.medium.url}
+												videoOwnerChannelId={item.snippet.videoOwnerChannelId}
+												videoOwnerChannelTitle={item.snippet.videoOwnerChannelTitle}
+											/>
+										)
+									)
 								)}
 						</div>
-						{/* <div className="flex justify-center p-4 ">
-							{data?.pages[data.pages.length - 1].nextPageToken && (
-								<button
-									className="hover:underline"
-									onClick={() => fetchNextPage()}
-								>
-									Load More
-								</button>
-							)}
-						</div> */}
+						{isFetchingNextPage && (
+							<div className="flex justify-center">
+								<Loader />
+							</div>
+						)}
+						{!data?.pages[data?.pages.length - 1]?.nextPageToken && (
+							<div className="text-right pt-4">End of playlist</div>
+						)}
 					</div>
 				)}
 			</div>

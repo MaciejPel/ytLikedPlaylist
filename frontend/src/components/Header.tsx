@@ -3,7 +3,7 @@ import { useThemeStore } from '../app/themeStore';
 import { useAuthStore } from '../app/authStore';
 import { serverURL } from '../utils/constants';
 import axios from 'axios';
-import { SunIcon, MoonIcon, TvIcon } from '@heroicons/react/24/solid';
+import { SunIcon, MoonIcon, BoltIcon } from '@heroicons/react/24/solid';
 
 const Header = () => {
 	const authStore = useAuthStore();
@@ -27,7 +27,7 @@ const Header = () => {
 		<header className="w-full h-16 dark:bg-zinc-900 dark:text-white bg-zinc-100 text-black flex items-center justify-center">
 			<div className="container flex items-center justify-between mx-auto xl:px-24 md:px-16 px-4">
 				<div className="font-bold text-lg flex gap-2 select-none">
-					<TvIcon className="w-6" />
+					<BoltIcon className="w-6 fill-yellow-500" />
 					YT Playlist
 				</div>
 				<nav className="flex gap-4">
