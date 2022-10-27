@@ -143,7 +143,7 @@ const App = () => {
 								<Loader />
 							</div>
 						)}
-						{!data?.pages[data?.pages.length - 1]?.nextPageToken && (
+						{data?.pages && !data.pages[data.pages.length - 1]?.nextPageToken && (
 							<div className="text-right pt-4">End of playlist</div>
 						)}
 					</div>
