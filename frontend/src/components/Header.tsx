@@ -24,7 +24,7 @@ const Header = () => {
 	});
 
 	return (
-		<header className="w-full h-16 dark:bg-zinc-900 dark:text-white bg-zinc-100 text-black flex items-center justify-center">
+		<header className="w-full h-16 dark:bg-zinc-900 dark:text-white bg-white text-black flex items-center justify-center shadow-sm">
 			<div className="container flex items-center justify-between mx-auto xl:px-24 md:px-16 px-4">
 				<div className="font-bold text-lg flex gap-2 select-none">
 					<BoltIcon className="w-6 fill-yellow-500" />
