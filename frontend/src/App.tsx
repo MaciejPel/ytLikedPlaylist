@@ -97,7 +97,6 @@ const App = () => {
 				getNextPageParam: (lastPage) => {
 					return lastPage ? lastPage.nextPageToken : null;
 				},
-				onSuccess: () => setError(false),
 			}
 		);
 
@@ -140,7 +139,7 @@ const App = () => {
 									: false
 							}
 						/>
-						{isLoading && (
+						{!error && isLoading && (
 							<div className="flex justify-center items-center h-3/4">
 								<Loader />
 							</div>
@@ -182,14 +181,18 @@ const App = () => {
 									)}
 							</div>
 						)}
-						{isFetchingNextPage && (
+						{!error && isFetchingNextPage && (
 							<div className="flex justify-center">
 								<Loader />
 							</div>
 						)}
-						{!error && data?.pages && !data.pages[data.pages.length - 1]?.nextPageToken && (
-							<div className="text-right font-medium">End of playlist</div>
-						)}
+						{!error &&
+							!isLoading &&
+							!isFetchingNextPage &&
+							data?.pages[data?.pages.length - 1] &&
+							!('nextPageToken' in data.pages[data.pages.length - 1]) && (
+								<div className="text-right font-medium">End of playlist</div>
+							)}
 					</div>
 				)}
 			</div>
