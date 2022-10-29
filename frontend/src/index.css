@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+.dark:root {
+	color-scheme: dark;
+}
 .clamp {
 	-webkit-line-clamp: 2;
 	display: -webkit-box;
