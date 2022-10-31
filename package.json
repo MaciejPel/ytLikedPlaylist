@@ -8,7 +8,7 @@
 		"server": "nodemon backend/index.js",
 		"client": "npm run dev --prefix frontend",
 		"dev": "concurrently \"npm run server\" \"npm run client\"",
-		"vercel-build": "npm i -f && npm i -f --prefix frontend && npm run build --prefix frontend"
+		"render-build": "npm i -f && npm i -f --prefix frontend && npm run build --prefix frontend"
 	},
 	"keywords": [],
 	"author": "",

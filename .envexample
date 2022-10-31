@@ -1,0 +1,5 @@
+ENVIRONMENT = development or production
+PORT = your port
+
+CLIENT_ID = your google client id
+CLIENT_SECRET = your google secret
