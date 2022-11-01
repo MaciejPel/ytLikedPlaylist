@@ -16,7 +16,6 @@ const Header = () => {
 			const tokens = await axios.post(`${serverURL}/api/google-auth`, { code });
 			authStore.setAuth({
 				access_token: tokens.data.access_token,
-				id_token: tokens.data.id_token,
 				refresh_token: tokens.data.refresh_token,
 			});
 		},
