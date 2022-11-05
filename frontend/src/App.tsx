@@ -56,9 +56,14 @@ export interface VideosListResponse {
 }
 
 const App = () => {
-	const [searchState, setSearchState] = useState<{ playlistId: string; text: string }>({
+	const [searchState, setSearchState] = useState<{
+		playlistId: string;
+		text: string;
+		infinite: boolean;
+	}>({
 		playlistId: 'LL',
 		text: '',
+		infinite: false,
 	});
 	const [error, setError] = useState<boolean>(false);
 	const authStore = useAuthStore();
@@ -99,6 +104,17 @@ const App = () => {
 				},
 			}
 		);
+
+	useEffect(() => {
+		if (
+			searchState.infinite &&
+			!isLoading &&
+			!isFetchingNextPage &&
+			data?.pages[data?.pages.length - 1] &&
+			'nextPageToken' in data.pages[data.pages.length - 1]
+		)
+			fetchNextPage();
+	}, [searchState.infinite, isLoading, isFetchingNextPage, data?.pages]);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -201,4 +217,3 @@ const App = () => {
 };
 
 export default App;
-
